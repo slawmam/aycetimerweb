@@ -1,0 +1,95 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AYCE Timer</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: white;
+      text-align: center;
+      padding: 40px;
+    }
+    h1 {
+      margin-bottom: 10px;
+    }
+    .info {
+      font-size: 1.2em;
+      margin: 10px 0;
+    }
+    .timer {
+      font-size: 2em;
+      margin-top: 20px;
+      color: #ff4444;
+    }
+  </style>
+</head>
+<body>
+  <h1>AYCE Timer</h1>
+  <div class="info" id="tableName">Meja: -</div>
+  <div class="info" id="customerName">Nama: -</div>
+  <div class="info" id="startTime">Mulai: -</div>
+  <div class="info" id="endTime">Selesai: -</div>
+  <div class="timer" id="countdown">Timer: -</div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-app.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAWNdliJccG3QZJR47pFz75dNhD50wEGPM",
+      authDomain: "aycetimerpesonamusi.firebaseapp.com",
+      databaseURL: "https://aycetimerpesonamusi-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "aycetimerpesonamusi",
+      storageBucket: "aycetimerpesonamusi.appspot.com",
+      messagingSenderId: "190415465379",
+      appId: "1:190415465379:web:7df7d4f370c8d70e610816",
+      measurementId: "G-X0JRFG7XLP"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    function getParam(name) {
+      const url = new URL(window.location.href);
+      return url.searchParams.get(name);
+    }
+
+    const table = getParam("table");
+    if (table) {
+      const dataRef = ref(db, `meja/${table}`);
+      onValue(dataRef, (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+          document.getElementById("tableName").innerText = "Meja: " + table;
+          document.getElementById("customerName").innerText = "Nama: " + data.nama;
+          document.getElementById("startTime").innerText = "Mulai: " + data.mulai;
+          document.getElementById("endTime").innerText = "Selesai: " + data.selesai;
+
+          // Timer countdown
+          const endTime = new Date(data.selesai).getTime();
+          const updateTimer = () => {
+            const now = new Date().getTime();
+            const distance = endTime - now;
+
+            if (distance <= 0) {
+              document.getElementById("countdown").innerText = "Waktu Habis";
+              clearInterval(timerInterval);
+            } else {
+              const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+              const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+              document.getElementById("countdown").innerText =
+                `Timer: ${minutes}m ${seconds}s`;
+            }
+          };
+
+          updateTimer();
+          const timerInterval = setInterval(updateTimer, 1000);
+        }
+      });
+    }
+  </script>
+</body>
+</html>
